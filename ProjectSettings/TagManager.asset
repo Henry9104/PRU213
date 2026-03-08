@@ -2,16 +2,18 @@
 %TAG !u! tag:unity3d.com,2011:
 --- !u!78 &1
 TagManager:
-  serializedVersion: 2
-  tags: []
+  serializedVersion: 3
+  tags:
+  - Coin
+  - killzone
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - ground
   - Water
   - UI
-  - 
+  - CameraBounds
   - 
   - 
   - 
@@ -41,3 +43,26 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 3863344213
+    locked: 0
+  - name: Trees
+    uniqueID: 3208776281
+    locked: 0
+  - name: Props
+    uniqueID: 695717007
+    locked: 0
+  - name: dynamicprops
+    uniqueID: 1973749605
+    locked: 0
+  - name: pickup
+    uniqueID: 176760129
+    locked: 0
+  - name: Platform
+    uniqueID: 2065003051
+    locked: 0
+  - name: Player
+    uniqueID: 1923769313
+    locked: 0
+  m_RenderingLayers:
+  - Default
