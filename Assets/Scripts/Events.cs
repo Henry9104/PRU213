@@ -9,9 +9,9 @@ public class Events : MonoBehaviour
     {
         SceneManager.LoadScene(0);
     }
-    public void Level()
+    public void Level1()
     {
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene("Level1");
     }
     public void Quit()
     {
