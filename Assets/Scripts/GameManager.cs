@@ -171,4 +171,5 @@ public class GameManager : MonoBehaviour
         leveCompletePanelTitle.text = "LEVEL COMPLETE";
         levelCompleteCoins.text = "COINS COLLECTED: " + coinCount + " / " + totalCoins;
     }
+    
 }
