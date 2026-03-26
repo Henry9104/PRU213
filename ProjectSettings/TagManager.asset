@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Coin
   - killzone
+  - Audio
   layers:
   - Default
   - TransparentFX
