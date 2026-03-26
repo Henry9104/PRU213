@@ -16,18 +16,26 @@ public class HealthManager : MonoBehaviour
 
     private GameObject Player;
 
+    //private void Awake()
+    //{
+    // Nếu đã có instance rồi thì destroy cái mới
+    //if (instance != null && instance != this)
+    //{
+    // Destroy(gameObject);
+    //return;
+    //}
+    //instance = this;
+    //DontDestroyOnLoad(gameObject);
+    //}
+
     private void Awake()
     {
-        if (instance == null)
-            instance = this;
-        else
-            Destroy(gameObject);
+        instance = this;
     }
 
     private void Start()
     {
-        Player = GameObject.FindObjectOfType<PlayerController>().gameObject;
-
+        Player = GameObject.FindFirstObjectByType<PlayerController>().gameObject;
         currentHealth = MaxHealth;
         DisplayHearts();
     }
@@ -37,28 +45,23 @@ public class HealthManager : MonoBehaviour
         if (currentHealth > 0)
         {
             currentHealth--;
-
             DisplayHearts();
-
-            AudioManager.instance.PlayHurt(); // 🔊 âm thanh
+            AudioManager.instance.PlayHurt();
         }
 
         if (currentHealth <= 0)
-        {
             GameManager.instance.Death();
-        }
 
-        Instantiate(damageEffect, Player.transform.position, Quaternion.identity);
+        if (damageEffect != null && Player != null)
+            Instantiate(damageEffect, Player.transform.position, Quaternion.identity);
     }
 
     public void DisplayHearts()
     {
         for (int i = 0; i < hearts.Length; i++)
         {
-            if (i < currentHealth)
-                hearts[i].sprite = FullHeartSprite;  // ❤️
-            else
-                hearts[i].sprite = EmptyHeartSprite; // 🖤
+            if (hearts[i] == null) continue;
+            hearts[i].sprite = (i < currentHealth) ? FullHeartSprite : EmptyHeartSprite;
         }
     }
 }

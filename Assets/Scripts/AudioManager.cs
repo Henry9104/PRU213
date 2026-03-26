@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
@@ -7,53 +7,56 @@ public class AudioManager : MonoBehaviour
     public AudioSource sfxSource;
     public AudioSource bgmSource;
 
-    [Header("Player")]
+    [Header("Player SFX")]
     public AudioClip jump;
     public AudioClip jumpHigh;
     public AudioClip hurt;
+    public AudioClip death;
 
-    [Header("Item")]
+    [Header("Item SFX")]
     public AudioClip coin;
-    public AudioClip gem;
 
-    [Header("Action")]
-    public AudioClip bump;
-    public AudioClip throwSound;
-
-    [Header("UI")]
+    [Header("UI SFX")]
     public AudioClip select;
+
+    [Header("BGM")]
+    public AudioClip bgm;
 
     private void Awake()
     {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
+        DontDestroyOnLoad(gameObject);
+        Debug.Log("AudioManager khởi tạo thành công!");
+    }
+    private void Start()
+    {
+        PlayBGM();
     }
 
     public void PlaySFX(AudioClip clip)
     {
+        Debug.Log($"PlaySFX | clip={clip?.name} | sfxSource={sfxSource}");
+        if (clip == null || sfxSource == null) return;
         sfxSource.PlayOneShot(clip);
     }
 
     public void PlayJump() => PlaySFX(jump);
     public void PlayJumpHigh() => PlaySFX(jumpHigh);
     public void PlayHurt() => PlaySFX(hurt);
+    public void PlayDeath() => PlaySFX(death);
     public void PlayCoin() => PlaySFX(coin);
-    public void PlayGem() => PlaySFX(gem);
-    public void PlayBump() => PlaySFX(bump);
-    public void PlayThrow() => PlaySFX(throwSound);
     public void PlaySelect() => PlaySFX(select);
-    public AudioClip bgm;
-
-    void Start()
-    {
-        PlayBGM();
-    }
 
     public void PlayBGM()
     {
+        Debug.Log($"PlayBGM | bgmSource={bgmSource} | bgm={bgm?.name}");
         if (bgmSource == null || bgm == null) return;
-
-        if (bgmSource.clip == bgm) return;
-
+        if (bgmSource.clip == bgm && bgmSource.isPlaying) return;
         bgmSource.clip = bgm;
         bgmSource.loop = true;
         bgmSource.volume = 0.5f;

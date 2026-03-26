@@ -1,3 +1,35 @@
+﻿//using System.Collections;
+//using System.Collections.Generic;
+//using UnityEngine;
+//using UnityEngine.SceneManagement;
+
+//public class Events : MonoBehaviour
+//{
+//    public void Menu()
+//    {
+//        SaveManager.DeleteSave(); // xóa save khi về menu
+//        if (AudioManager.instance != null) AudioManager.instance.PlaySelect();
+//        SceneManager.LoadScene(0);
+//    }
+
+//    public void Level()
+//    {
+//        if (AudioManager.instance != null) AudioManager.instance.PlaySelect();
+//        SceneManager.LoadScene(1);
+//    }
+
+//    public void Retry()
+//    {
+//        if (AudioManager.instance != null) AudioManager.instance.PlaySelect();
+//        SceneManager.LoadScene(1);
+//    }
+
+//    public void Quit()
+//    {
+//        if (AudioManager.instance != null) AudioManager.instance.PlaySelect();
+//        Application.Quit();
+//    }
+//}
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,19 +39,41 @@ public class Events : MonoBehaviour
 {
     public void Menu()
     {
-        //AudioManager.instance.PlaySelect(); // sound click
-        SceneManager.LoadScene(0);
+        Time.timeScale = 1f; 
+        SaveManager.DeleteSave();
+
+        if (AudioManager.instance != null)
+            AudioManager.instance.PlaySelect();
+
+        SceneManager.LoadScene("Menu"); 
     }
 
     public void Level()
     {
-        //AudioManager.instance.PlaySelect(); 
-        SceneManager.LoadScene(1);
+        Time.timeScale = 1f; 
+
+        if (AudioManager.instance != null)
+            AudioManager.instance.PlaySelect();
+
+        SceneManager.LoadScene("Level1");
+        Debug.Log("CLICK LEVEL");
+    }
+
+    public void Retry()
+    {
+        Time.timeScale = 1f; 
+
+        if (AudioManager.instance != null)
+            AudioManager.instance.PlaySelect();
+
+        SceneManager.LoadScene("Level1");
     }
 
     public void Quit()
     {
-        //AudioManager.instance.PlaySelect(); 
+        if (AudioManager.instance != null)
+            AudioManager.instance.PlaySelect();
+
         Application.Quit();
     }
 }

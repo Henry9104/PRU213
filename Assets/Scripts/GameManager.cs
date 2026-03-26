@@ -1,36 +1,24 @@
-using UnityEngine;
+﻿using System.Collections;
 using TMPro;
-using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-
     [SerializeField] private TMP_Text coinText;
-
     [SerializeField] private PlayerController playerController;
 
     private int coinCount = 0;
-    private int gemCount = 0;
-    private bool isGameOver = false;
-    private Vector3 playerPosition;
+    private bool isRespawning = false;
 
-    //Level Complete
+    private Vector3 checkpointPosition;
 
     [SerializeField] GameObject levelCompletePanel;
     [SerializeField] TMP_Text leveCompletePanelTitle;
     [SerializeField] TMP_Text levelCompleteCoins;
-
-
-
-
-   
     private int totalCoins = 0;
-  
-
-
 
     private void Awake()
     {
@@ -40,99 +28,147 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (SaveManager.HasSave())
+        {
+            // Load tiến trình cũ
+            coinCount = SaveManager.LoadCoins();
+            HealthManager.instance.currentHealth = SaveManager.LoadHealth();
+            HealthManager.instance.DisplayHearts();
+            playerController.transform.position = SaveManager.LoadPosition();
+        }
         UpdateGUI();
         UIManager.instance.fadeFromBlack = true;
-        playerPosition = playerController.transform.position;
-
+        checkpointPosition = playerController.transform.position;
         FindTotalPickups();
+    }
+
+    public void SetCheckpoint(Vector3 position)
+    {
+        checkpointPosition = position;
+        Debug.Log("Checkpoint saved at: " + position);
     }
 
     public void IncrementCoinCount()
     {
         coinCount++;
         UpdateGUI();
-    }
-    public void IncrementGemCount()
-    {
-        gemCount++;
-        UpdateGUI();
+        AudioManager.instance.PlayCoin();
     }
 
     private void UpdateGUI()
     {
         coinText.text = coinCount.ToString();
-  
     }
 
+    // ── RESPAWN còn tim (rớt nước) ─────────────────────────────────────────────
+    public void RespawnAtCheckpoint()
+    {
+        if (isRespawning) return;
+        isRespawning = true;
+        StartCoroutine(RespawnCoroutine());
+    }
+
+    private IEnumerator RespawnCoroutine()
+    {
+        // 1. Tắt input player ngay
+        Rigidbody2D rb = playerController.GetComponent<Rigidbody2D>();
+        rb.linearVelocity = Vector2.zero;
+        rb.gravityScale = 0f;
+
+        // 2. Fade tối
+        UIManager.instance.fadeToBlack = true;
+        yield return new WaitForSeconds(1f);
+
+        // 3. Teleport
+        playerController.transform.position = checkpointPosition;
+        rb.linearVelocity = Vector2.zero;
+
+        // 4. Đợi 1 frame để Unity cập nhật vị trí
+        yield return null;
+        yield return null;
+
+        // 5. Bật gravity lại
+        rb.gravityScale = 4f;
+
+        // 6. Fade sáng
+        UIManager.instance.fadeToBlack = false;
+        UIManager.instance.fadeFromBlack = true;
+
+        // 7. Đợi fade xong RỒII mới cho CheckWater hoạt động
+        yield return new WaitForSeconds(1f);
+        playerController.ResetDead();
+        isRespawning = false;
+    }
+
+    // ── DEATH hết tim ──────────────────────────────────────────────────────────
     public void Death()
     {
-        if (!isGameOver)
-        {
-            // Disable Mobile Controls
-            UIManager.instance.DisableMobileControls();
-            // Initiate screen fade
-            UIManager.instance.fadeToBlack = true;
+        if (isRespawning) return;
+        isRespawning = true;
 
-            // Disable the player object
-            playerController.gameObject.SetActive(false);
+        UIManager.instance.DisableMobileControls();
+        UIManager.instance.fadeToBlack = true;
+        playerController.gameObject.SetActive(false);
+        AudioManager.instance.PlayDeath();
 
-            // Start death coroutine to wait and then respawn the player
-            StartCoroutine(DeathCoroutine());
-
-            // Update game state
-            isGameOver = true;
-
-            // Log death message
-            Debug.Log("Died");
-        }
+        StartCoroutine(DeathCoroutine());
+        Debug.Log("Player Died");
     }
- 
+
+    //private IEnumerator DeathCoroutine()
+    //{
+    //    yield return new WaitForSeconds(1f);
+
+    //    Rigidbody2D rb = playerController.GetComponent<Rigidbody2D>();
+    //    rb.linearVelocity = Vector2.zero;
+    //    rb.gravityScale = 0f;
+
+    //    playerController.transform.position = checkpointPosition;
+    //    playerController.gameObject.SetActive(true);
+
+    //    yield return null;
+    //    yield return null;
+
+    //    rb.gravityScale = 4f;
+
+    //    // Restore health
+    //    HealthManager.instance.currentHealth = 3;
+    //    HealthManager.instance.DisplayHearts();
+
+    //    UIManager.instance.fadeToBlack = false;
+    //    UIManager.instance.fadeFromBlack = true;
+
+    //    if (playerController.controlmode == Controls.mobile)
+    //        UIManager.instance.EnableMobileControls();
+
+    //    yield return new WaitForSeconds(1f);
+    //    playerController.ResetDead();
+    //    isRespawning = false;
+    //}
+    private IEnumerator DeathCoroutine()
+    {
+        yield return new WaitForSeconds(1f);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("End Game");
+    }
+
     public void FindTotalPickups()
     {
-
-        pickup[] pickups = GameObject.FindObjectsOfType<pickup>();
-
-        foreach (pickup pickupObject in pickups)
-        {
-            if (pickupObject.pt == pickup.pickupType.coin)
-            {
-                totalCoins += 1;
-            }
-           
-        }
-
-
-      
+        pickup[] pickups = GameObject.FindObjectsByType<pickup>(FindObjectsSortMode.None);
+        foreach (pickup p in pickups)
+            if (p.pt == pickup.pickupType.coin)
+                totalCoins++;
     }
+
     public void LevelComplete()
     {
-       
-
+        // Dừng player
+        playerController.enabled = false;
+        Rigidbody2D rb = playerController.GetComponent<Rigidbody2D>();
+        rb.linearVelocity = Vector2.zero;
 
         levelCompletePanel.SetActive(true);
         leveCompletePanelTitle.text = "LEVEL COMPLETE";
-
-
-
-        levelCompleteCoins.text = "COINS COLLECTED: "+ coinCount.ToString() +" / " + totalCoins.ToString();
- 
+        levelCompleteCoins.text = "COINS COLLECTED: " + coinCount + " / " + totalCoins;
     }
-   
-    public IEnumerator DeathCoroutine()
-    {
-        yield return new WaitForSeconds(1f);
-        playerController.transform.position = playerPosition;
-
-        // Wait for 2 seconds
-        yield return new WaitForSeconds(1f);
-
-        // Check if the game is still over (in case player respawns earlier)
-        if (isGameOver)
-        {
-            SceneManager.LoadScene(1);
-
-            
-        }
-    }
-
 }

@@ -1,42 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class pickup : MonoBehaviour
 {
-    public enum pickupType { coin,gem,health}
+    public enum pickupType { coin, health }
 
     public pickupType pt;
     [SerializeField] GameObject PickupEffect;
 
+    private bool collected = false; // Tránh collect 2 lần
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(pt == pickupType.coin)
-        {
-            if(collision.gameObject.tag == "Player")
-            {
-                GameManager.instance.IncrementCoinCount();
-           
-                Instantiate(PickupEffect, transform.position, Quaternion.identity);
+        if (collected) return;
+        if (!collision.CompareTag("Player")) return;
 
-                Destroy(this.gameObject,0.2f);
-                
-            }
-            
+        collected = true;
+
+        if (pt == pickupType.coin)
+        {
+            GameManager.instance.IncrementCoinCount();
+            if (PickupEffect != null)
+                Instantiate(PickupEffect, transform.position, Quaternion.identity);
+            Destroy(gameObject);
         }
-
-        if (pt == pickupType.gem)
+        else if (pt == pickupType.health)
         {
-            if (collision.gameObject.tag == "Player")
+            if (HealthManager.instance.currentHealth < 3)
             {
-                GameManager.instance.IncrementGemCount();
-            
-                Instantiate(PickupEffect, transform.position, Quaternion.identity);
-
-                Destroy(this.gameObject, 0.2f);
-
+                HealthManager.instance.currentHealth++;
+                HealthManager.instance.DisplayHearts();
             }
-
+            if (PickupEffect != null)
+                Instantiate(PickupEffect, transform.position, Quaternion.identity);
+            Destroy(gameObject);
         }
     }
 }
